@@ -61,6 +61,24 @@ app.event("team_join", async ({ event, client }) => {
             text: `:white_check_mark: Lastly, if you want to be highlighted as a guest speaker on our Tuesday streams, Register Here.\n\n<https://www.givermarketing.com/tuesday-marketing-broadcast-speaker-registration/|Register here>`,
           },
         },
+
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `Have an awesome day :wave:`,
+          },
+        },
+
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:pushpin: Remember.... share your origin story and ask questions to the group via #general channel.
+
+            IMPORTANT NEXT STEP :point_down:, please check out the membership videos shared in the #member-success channel. It’s packed with valuable resources to help you make the most out of our community.`,
+          },
+        },
       ],
     });
 
