@@ -36,7 +36,7 @@ app.event("team_join", async ({ event, client }) => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:wave: Welcome <@${userId}> (${userName})! We are happy to have you. Your onboarding starts now.\n\nLet’s help you get started and connect with other members well. Your profile must include your personal headshot :busts_in_silhouette: so others can be clear when connecting and introducing others. Also, your description needs to include your marketing superpower :mechanical_arm: as it relates to what you specialize in (focus on one thing). No one likes to refer a "know-it-all" :grin:. See  <@U023P5YL0HE> or <@U03670FRLKY>'s profile as examples.`,
+            text: `:wave: Welcome <@${userId}> (${userName})! We are happy to have you. Your onboarding starts now.\n\nLet’s help you get started and connect with other members well. Your profile must include your personal headshot :busts_in_silhouette: so others can be clear when connecting and introducing others. Also, your description needs to include your marketing superpower :mechanical_arm: as it relates to what you specialize in (focus on one thing). No one likes to refer a "know-it-all" :grin:. See  @U023P5YL0HE or @U03670FRLKY 's profile as examples.`,
             text: `:wave: Welcome <@${userId}> (${userName})! Your onboarding starts now.\n\nLet’s help you get started. See <@U023P5YL0HE> or <@U03670FRLKY>'s profile as examples.`,
           },
         },
