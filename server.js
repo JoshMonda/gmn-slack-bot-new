@@ -17,66 +17,43 @@ const app = new App({
 
 // Enable CORS and setup Express app
 const expressApp = express();
-expressApp.use(cors());
+expressApp.use(
+  cors({
+    origin: "http://localhost:3000", // Replace with your frontend URL if different
+  })
+);
 expressApp.use(bodyParser.json());
+
+// Debugging Middleware
+expressApp.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log("Request body:", req.body);
+  next();
+});
 
 // Slack event: Listen for 'team_join' when a new member joins the workspace
 app.event("team_join", async ({ event, client }) => {
   try {
-    const userId = event.user.id; // Get the ID of the new user
-    const userInfo = await client.users.info({ user: userId }); // Fetch user information
-    const userName = userInfo.user.real_name || userInfo.user.name; // Get user name
+    const userId = event.user.id;
+    const userInfo = await client.users.info({ user: userId });
+    const userName = userInfo.user.real_name || userInfo.user.name;
 
-    // Send welcome message to the specified channel
     await client.chat.postMessage({
-      channel: "#slack_automation_test", // Channel for the welcome message
+      channel: "#slack_automation_test",
       text: `:wave: Welcome <@${userId}>!`,
       blocks: [
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:wave: Welcome <@${userId}> (${userName})! We are happy to have you. Your onboarding starts now.\n\nLet’s help you get started and connect with other members well. Your profile must include your personal headshot :busts_in_silhouette: so others can be clear when connecting and introducing others. Also, your description needs to include your marketing superpower :mechanical_arm: as it relates to what you specialize in (focus on one thing). No one likes to refer a "know-it-all" :grin:. See  @U023P5YL0HE or @U03670FRLKY 's profile as examples.`,
-            text: `:wave: Welcome <@${userId}> (${userName})! Your onboarding starts now.\n\nLet’s help you get started. See <@U023P5YL0HE> or <@U03670FRLKY>'s profile as examples.`,
+            text: `:wave: Welcome <@${userId}> (${userName})! Your onboarding starts now. Let’s help you get started and connect with other members.`,
           },
         },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:white_check_mark: Engage and participate in the LIVE Tuesday Broadcast which streams at 8am PT / 11am ET in FB private group, LinkedIn, Twitter, and YouTube via Streamyard.\n\n*Note!!* Streamyard team member “Green room” link will also be shared in the #general channel at least 30 min before we go LIVE!`,
-          },
-        },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:white_check_mark: Click the link to watch Giver Marketing Blueprint and post action items in Slack #general channel so everyone can learn about you and give feedback.\n\n<https://www.givermarketing.com/blueprint|Giver Marketing Blueprint>`,
-          },
-        },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:white_check_mark: Lastly, if you want to be highlighted as a guest speaker on our Tuesday streams, Register Here.\n\n<https://www.givermarketing.com/tuesday-marketing-broadcast-speaker-registration/|Register here>`,
-          },
-        },
-
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `Have an awesome day :wave:`,
-          },
-        },
-
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:pushpin: Remember.... share your origin story and ask questions to the group via #general channel.
-
-            IMPORTANT NEXT STEP :point_down:, please check out the membership videos shared in the #member-success channel. It’s packed with valuable resources to help you make the most out of our community.`,
+            text: `:white_check_mark: Please update your profile and engage with our community.`,
           },
         },
       ],
@@ -88,18 +65,62 @@ app.event("team_join", async ({ event, client }) => {
   }
 });
 
-// Slack event: Listen for manual video trigger
+// API: Send welcome message manually
+expressApp.post("/api/send-welcome-message", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    console.log(
+      `Received request to send welcome message to userId: ${userId}`
+    );
+
+    const userInfo = await app.client.users.info({ user: userId });
+    const userName = userInfo.user.real_name || userInfo.user.name;
+    console.log(`Fetched user info: ${userName} (${userId})`);
+
+    await app.client.chat.postMessage({
+      channel: "#slack_automation_test",
+      text: `:wave: Welcome <@${userId}>!`,
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:wave: Welcome <@${userId}> (${userName})! Your onboarding starts now. Let’s help you get started and connect with other members.`,
+          },
+        },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:white_check_mark: Please update your profile and engage with our community.`,
+          },
+        },
+      ],
+    });
+
+    console.log(`Welcome message sent to ${userName} (${userId})`);
+    res.status(200).json({ message: "Welcome message sent successfully!" });
+  } catch (error) {
+    console.error("Error sending welcome message:", error);
+    res.status(500).json({
+      error: "Failed to send welcome message",
+      details: error.message,
+    });
+  }
+});
+
+// API: Send video message
 expressApp.post("/api/send-video", async (req, res) => {
   try {
     await app.client.chat.postMessage({
-      channel: "#video-test", // Channel for video links
+      channel: "#video-test",
       text: `Here are some helpful videos to get you started.`,
       blocks: [
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `1. *Welcome and Introduction*:\n:arrow_right: [Watch Video](https://www.youtube.com/watch?v=ZA7Js3Ibsk0)\n:white_check_mark: [Schedule Here](https://meetings.hubspot.com/ingrid2)`,
+            text: `1. *Welcome and Introduction*:\n:arrow_right: [Watch Video](https://www.youtube.com/watch?v=ZA7Js3Ibsk0)`,
           },
         },
         {
@@ -109,22 +130,9 @@ expressApp.post("/api/send-video", async (req, res) => {
             text: `2. *Setting Up Member Profile*:\n:arrow_right: [Watch Video](https://www.youtube.com/watch?v=bvIUaSUdTGE)`,
           },
         },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `3. *Getting Showcased*:\n:arrow_right: [Watch Video](https://www.youtube.com/watch?v=vod8x79CVVQ)`,
-          },
-        },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `4. *Team Collaboration*:\n:arrow_right: [Watch Video](https://www.youtube.com/watch?v=hZ7_uf5iyCg)`,
-          },
-        },
       ],
     });
+
     res.status(200).json({ message: "Video sent successfully!" });
   } catch (error) {
     console.error("Error sending video:", error);
@@ -133,7 +141,7 @@ expressApp.post("/api/send-video", async (req, res) => {
 });
 
 // Start the Express app on port 4000
-const port = 4000;
+const port = process.env.PORT || 4000;
 expressApp.listen(port, () => {
   console.log(`Express app is listening on port ${port}`);
 });
